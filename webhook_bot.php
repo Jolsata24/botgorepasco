@@ -457,46 +457,122 @@ switch ($intent_name) {
         );
         break;
     // --- NUEVO: CASO S: PDRC 2025-2034 (Plan Concertado) ---
+    // --- CASO S: PDRC 2025-2034 (CON DICCIONARIO INTELIGENTE) ---
     case 'consulta_pdrc_2034':
         $pdf_link = $base_files . "pdrc_2034.pdf";
         
-        // Puntos Clave Generalizados del documento masivo
-        $puntos_pdrc = [
+        // 1. CAPTURA SEGURA DEL TEMA (Igual que en el TUPA)
+        $tema_raw = $parametros['tema_pdrc'] ?? '';
+        $tema_especifico = "";
+        
+        if (is_array($tema_raw)) {
+            $tema_especifico = !empty($tema_raw) ? $tema_raw[0] : '';
+        } else {
+            $tema_especifico = (string)$tema_raw;
+        }
+
+        // 2. PERSONALIZACIÓN DE LA RESPUESTA SEGÚN EL TEMA
+        // Por defecto (si no dijo nada específico):
+        $titulo = "PDRC Pasco al 2034";
+        $subtitulo = "Plan de Desarrollo Concertado";
+        $puntos_clave = [
             "📅 Horizonte: 10 años (2025 - 2034)",
-            "🔭 Visión: Pasco como región integrada, competitiva y sostenible.",
-            "👥 Validación: Incluye Acta del Consejo de Coord. Regional (CCR).",
-            "⚙️ Eje 1 (Social): Cierre de brechas en Salud y Educación.",
-            "💰 Eje 2 (Económico): Agroindustria, Turismo y Minería Responsable.",
-            "🌍 Eje 3 (Ambiental): Gestión de recursos hídricos y cambio climático.",
-            "🏛️ Eje 4 (Institucional): Modernización y Gobernanza Pública."
+            "🔭 Visión: Pasco integrado y sostenible.",
+            "⚙️ Ejes: Social, Económico, Ambiental e Inst.",
+            "✅ Estado: Aprobado con Acta del CCR."
         ];
 
+        // Lógica de "Diccionario"
+        if (!empty($tema_especifico)) {
+            $tema_normalizado = strtolower($tema_especifico);
+            
+            if ($tema_normalizado == 'social') {
+                $titulo = "PDRC: Eje Social y Humano";
+                $subtitulo = "Salud, Educación y Vivienda";
+                $puntos_clave = [
+                    "🚑 Salud: Reducción de anemia y desnutrición.",
+                    "🎓 Educación: Modernización de colegios y currícula.",
+                    "🏠 Vivienda: Cierre de brechas en servicios básicos.",
+                    "🤝 Inclusión: Atención a poblaciones vulnerables."
+                ];
+            } 
+            elseif ($tema_normalizado == 'economico') {
+                $titulo = "PDRC: Desarrollo Económico";
+                $subtitulo = "Empleo, Agro y Turismo";
+                $puntos_clave = [
+                    "🚜 Agro: Tecnificación del campo y riego.",
+                    "✈️ Turismo: Poner en valor la Selva Central.",
+                    "🏭 Industria: Transformación de materias primas.",
+                    "💼 Empleo: Fomento de la inversión privada."
+                ];
+            }
+            elseif ($tema_normalizado == 'ambiental') {
+                $titulo = "PDRC: Medio Ambiente";
+                $subtitulo = "Sostenibilidad y Recursos";
+                $puntos_clave = [
+                    "💧 Agua: Gestión integral de recursos hídricos.",
+                    "♻️ Residuos: Plantas de tratamiento provinciales.",
+                    "🌳 Bosques: Reforestación y control de tala.",
+                    "⚠️ Riesgos: Prevención ante desastres naturales."
+                ];
+            }
+            elseif ($tema_normalizado == 'infraestructura') {
+                $titulo = "PDRC: Infraestructura Vial";
+                $subtitulo = "Conectividad y Obras";
+                $puntos_clave = [
+                    "🛣️ Vías: Asfaltado de carreteras departamentales.",
+                    "bridge Puentes: Interconexión entre distritos.",
+                    "⚡ Energía: Electrificación rural al 100%.",
+                    "📡 Digital: Banda ancha para toda la región."
+                ];
+            }
+            elseif ($tema_normalizado == 'institucional') {
+                $titulo = "PDRC: Gestión Institucional";
+                $subtitulo = "Gobernanza y Seguridad";
+                $puntos_clave = [
+                    "⚖️ Transparencia: Gobierno digital y abierto.",
+                    "👮 Seguridad: Fortalecimiento de seguridad ciudadana.",
+                    "📉 Conflictos: Gestión y diálogo social preventivo."
+                ];
+            }
+        }
+
         $response_array = crearTarjetaDescarga(
-            "PDRC Pasco al 2034", 
-            "Plan de Desarrollo Regional Concertado", 
-            "https://cdn-icons-png.flaticon.com/512/3203/3203862.png", // Icono de proyección/futuro
+            $titulo, 
+            $subtitulo, 
+            "https://cdn-icons-png.flaticon.com/512/3203/3203862.png", 
             $pdf_link,
-            $puntos_pdrc
+            $puntos_clave
         );
         break;
-
     // --- CASO T: TUPA 2024 (Versión Blindada) ---
+    // --- CASO T: TUPA 2024 (CORREGIDO Y PROBADO) ---
     case 'consulta_tupa_2024':
         $pdf_link = $base_files . "tupa_2024.pdf"; 
         
-        // Verificamos si existe el parámetro, si no, lo dejamos vacío
-        $tema_especifico = "";
-        if (isset($parametros['concepto_tupa']) && !empty($parametros['concepto_tupa'])) {
-            $tema_especifico = $parametros['concepto_tupa'];
+        // 1. CAPTURA INTELIGENTE DEL PARÁMETRO
+        // Obtenemos lo que manda Dialogflow (puede ser texto o lista)
+        $tema_raw = $parametros['concepto_tupa'] ?? '';
+        
+        $tema_especifico = ""; // Valor inicial vacío
+        
+        // Verificamos: ¿Es una lista (Array)?
+        if (is_array($tema_raw)) {
+            // Si es lista, sacamos el primer valor: ["Transporte"] -> "Transporte"
+            $tema_especifico = !empty($tema_raw) ? $tema_raw[0] : '';
+        } else {
+            // Si ya es texto, lo usamos tal cual
+            $tema_especifico = (string)$tema_raw;
         }
 
-        // Títulos dinámicos
-        if ($tema_especifico != "") {
+        // 2. TÍTULOS DINÁMICOS (Ahora sí funcionará)
+        if (!empty($tema_especifico)) {
+            // Convertimos primera letra a mayúscula
             $tema_format = ucfirst($tema_especifico); 
             $titulo_tarjeta = "TUPA: Trámites de $tema_format";
             $subtitulo_tarjeta = "Requisitos y Costos para $tema_format";
         } else {
-            // Título Genérico (Si no detectó la palabra clave)
+            // Título Genérico (Si no detectó palabra clave)
             $titulo_tarjeta = "TUPA GORE Pasco 2024";
             $subtitulo_tarjeta = "Texto Único de Procedimientos Administrativos";
         }
