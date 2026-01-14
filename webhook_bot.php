@@ -7,7 +7,11 @@ $ngrok_url = "https://unclinical-ungeometrically-elenor.ngrok-free.dev";
 // -----------------------------
 
 $base_files = $ngrok_url . "/pruebabot/documentos/";
-
+// --- CONTACTO GORE PASCO ---
+// Formato WhatsApp: https://wa.me/51NÚMERO (Sin espacios ni guiones)
+// Formato Llamada: tel:+51NÚMERO
+$wsp_soporte = "https://wa.me/51969704480"; // <--- PON AQUÍ EL NÚMERO REAL DE IMAGEN/SOPORTE
+$fono_central = "tel:+51969704480"; // <--- PON EL NÚMERO FIJO DE LA SEDE
 // 1. RECIBIR DATOS DE DIALOGFLOW
 $json = file_get_contents('php://input');
 $request = json_decode($json, true);
@@ -22,37 +26,71 @@ $response_array = [];
 
 // 3. CEREBRO DE RESPUESTAS DINÁMICAS
 switch ($intent_name) {
+    // --- CASO MENÚ PRINCIPAL (Inicio y Reinicio) ---
+    // --- CASO MENÚ PRINCIPAL (Inicio y Reinicio) ---
+    case 'Default Welcome Intent': // Cuando dicen "Hola"
+    case 'navegacion_reiniciar':   // Cuando dicen "Volver al menú"
+        
+        $texto_bienvenida = "👋 ¡Hola! Soy el Asistente Virtual del GORE Pasco.\n\n" .
+                            "Estoy conectado a los documentos oficiales de gestión (2024-2034) para brindarte información transparente y rápida.\n\n" .
+                            "¿Qué información necesitas hoy?";
+        
+        // Menú Principal con opción de CONTACTO al final
+        $botones_menu = [
+            "🔍 Consultar Trámite",
+            "📋 Ver TUPA 2024",
+            "💼 Perfiles Puesto (MCC)",
+            "💰 Sueldo Gobernador",
+            "🏛️ Organigrama (ROF)",
+            "📅 Plan PDRC 2034",
+            "🚑 Objetivos PEI",
+            "💬 Hablar con un Humano" // <--- ¡AQUÍ ESTÁ EL NUEVO BOTÓN!
+        ];
 
-    // CASO A: Consulta de Trámite (Tu lógica de base de datos)
+        $response_array = responderConTextoYBotones($texto_bienvenida, $botones_menu);
+        break;
+
+    // --- CASO A: CONSULTA DE TRÁMITE ---
     case 'recibe_codigo_tramite':
         $codigo = $parametros['numero_expediente'] ?? '';
-
-        // CONEXIÓN A BASE DE DATOS
+        
+        // Conexión estándar (Asegúrate que la clave sea la correcta de tu servidor)
         $conn = new mysqli("localhost", "root", "123456", "prueba_chatbot");
+        
+        $texto_respuesta = "";
+        $botones_salida = ["🔄 Consultar otro", "🏠 Volver al Menú"]; // Botones por defecto
+
         if ($conn->connect_error) {
-            $texto = "Error de conexión a la base de datos.";
+            $texto_respuesta = "⚠️ Error técnico de conexión a la base de datos.";
         } else {
             $sql = "SELECT * FROM tramites WHERE codigo_expediente = '$codigo'";
             $result = $conn->query($sql);
-
+            
             if ($result->num_rows > 0) {
+                // SI LO ENCUENTRA
                 $fila = $result->fetch_assoc();
-                $texto = "✅ **¡Encontrado!** \n" .
-                    "📂 Expediente: " . $fila['codigo_expediente'] . "\n" .
-                    "📊 Estado: " . $fila['estado'] . "\n" .
-                    "📍 Ubicación: " . $fila['ubicacion'];
-
-                // Si tiene PDF adjunto en la base de datos
+                $texto_respuesta = "✅ **¡Encontrado!** \n" .
+                         "📂 Expediente: " . $fila['codigo_expediente'] . "\n" .
+                         "📊 Estado: " . $fila['estado'] . "\n" .
+                         "📍 Ubicación: " . $fila['ubicacion'];
+                
                 if (!empty($fila['pdf_adjunto'])) {
                     $link_descarga = $base_files . $fila['pdf_adjunto'];
-                    $texto .= "\n\n📄 [Descargar Documento]($link_descarga)";
+                    $texto_respuesta .= "\n\n📄 [Descargar Documento]($link_descarga)";
                 }
             } else {
-                $texto = "❌ No encontré el expediente '$codigo'. Verifica el número.";
+                // NO LO ENCUENTRA (Aquí es útil ofrecer ayuda humana también)
+                $texto_respuesta = "❌ No encontré el expediente '$codigo'. \n" .
+                                   "Por favor verifica el número e inténtalo de nuevo.";
+                
+                // Si falla, le damos la opción de llamar para que no se frustre
+                $botones_salida[] = "💬 Hablar con un Humano"; 
             }
             $conn->close();
         }
-        $response_array = ["fulfillmentText" => $texto];
+
+        // Enviamos la respuesta con los botones dinámicos
+        $response_array = responderConTextoYBotones($texto_respuesta, $botones_salida);
         break;
 
     // CASO B: Requisitos Ambientales (Ahora con lista detallada)
@@ -593,10 +631,95 @@ switch ($intent_name) {
             $puntos_tupa
         );
         break;
+    
+
+    // --- NUEVO: CASO REINICIO (Volver al Menú) ---
+    // --- CASO MENÚ PRINCIPAL (Inicio y Reinicio) ---
+    case 'Default Welcome Intent': // Cuando dicen "Hola"
+    case 'navegacion_reiniciar':   // Cuando dicen "Volver al menú"
+        
+        $texto_bienvenida = "👋 ¡Hola! Soy el Asistente Virtual del GORE Pasco.\n\n" .
+                            "Estoy aquí para ayudarte con información oficial 24/7. " .
+                            "¿Qué deseas hacer hoy?";
+        
+        // Menú con las opciones principales + CONTACTO
+        $botones_menu = [
+            "🔍 Consultar Expediente",
+            "📋 Ver TUPA 2024",
+            "💰 Sueldo Gobernador",
+            "📅 Plan Desarrollo 2034",
+            "🚑 Objetivos Salud (PEI)",
+            "💬 Hablar con un Humano" // <--- NUEVO BOTÓN
+        ];
+
+        $response_array = responderConTextoYBotones($texto_bienvenida, $botones_menu);
+        break;
     // CASO DEFAULT: Si no reconocemos el intent
+    // --- NUEVO: CASO CONTACTO DIRECTO ---
+    case 'contactar_funcionario':
+        
+        $titulo = "Canales de Atención Ciudadana";
+        $subtitulo = "Horario: Lunes a Viernes (8:00am - 5:00pm)";
+        
+        // Usamos una tarjeta con botones de acción directa
+        $response_array = [
+            "fulfillmentMessages" => [
+                [
+                    "payload" => [
+                        "richContent" => [
+                            [
+                                [
+                                    "type" => "info",
+                                    "title" => $titulo,
+                                    "subtitle" => $subtitulo,
+                                    "image" => [
+                                        "src" => ["rawUrl" => "https://cdn-icons-png.flaticon.com/512/3059/3059502.png"] // Icono de Call Center
+                                    ]
+                                ],
+                                [
+                                    "type" => "chips",
+                                    "options" => [
+                                        [
+                                            "text" => "💬 Chatear por WhatsApp",
+                                            "link" => $wsp_soporte
+                                        ],
+                                        [
+                                            "text" => "📞 Llamar a Sede Central",
+                                            "link" => $fono_central
+                                        ],
+                                        [
+                                            "text" => "🏠 Volver al Menú",
+                                            "link" => "" // El link vacío en chips a veces da error en web, mejor manejarlo como texto si es web
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+        break;
+
+    // --- MODIFICADO: CASO DEFAULT (FALLBACK INTELIGENTE) ---
+    // Esto se activa cuando el bot NO entiende la pregunta
+    case 'Default Fallback Intent':
     default:
-        // Respondemos algo genérico o nada para que Dialogflow use su respuesta por defecto
-        $response_array = ["fulfillmentText" => ""];
+        
+        $texto_error = "🤔 Mmm... no estoy seguro de haber entendido tu consulta, o tal vez esa información no está en mis archivos actuales.\n\n" .
+                       "¿Qué prefieres hacer?";
+
+        // Ofrecemos soluciones en lugar de solo decir "Error"
+        $botones_ayuda = [
+            "💬 Hablar con un Humano", // Esto activará el intent 'contactar_funcionario' si lo entrenas o lo manejas por texto
+            "🔍 Consultar Trámite",
+            "🏠 Volver al Menú"
+        ];
+
+        // NOTA: Para que el botón "Hablar con un Humano" funcione al hacer clic, 
+        // debes agregar esa frase en el Training Phrases del intent 'contactar_funcionario'.
+        
+        $response_array = responderConTextoYBotones($texto_error, $botones_ayuda);
         break;
 }
 
@@ -685,6 +808,41 @@ function crearTarjetaInfo($titulo, $subtitulo, $img_url, $link, $boton_texto, $l
         ]
     ];
 }
+// Función para enviar Texto Simple + Botones (Chips)
+function responderConTextoYBotones($texto, $botones = []) {
+    // Estructura básica de respuesta
+    $respuesta = [
+        "fulfillmentMessages" => [
+            [
+                "text" => [
+                    "text" => [$texto]
+                ]
+            ]
+        ]
+    ];
 
+    // Si hay botones, los agregamos como "Suggestions"
+    if (!empty($botones)) {
+        $suggestions = [];
+        foreach ($botones as $btn) {
+            $suggestions[] = ["title" => $btn];
+        }
+
+        $respuesta["fulfillmentMessages"][] = [
+            "payload" => [
+                "richContent" => [
+                    [
+                        [
+                            "type" => "chips",
+                            "options" => array_map(function($txt) { return ["text" => $txt]; }, $botones)
+                        ]
+                    ]
+                ]
+            ]
+        ];
+    }
+    
+    return $respuesta;
+}
 // 5. ENVIAR RESPUESTA FINAL
 echo json_encode($response_array);
