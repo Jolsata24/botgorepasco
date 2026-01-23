@@ -43,66 +43,58 @@
             position: fixed;
             bottom: 20px; 
             right: 20px;
-            width: 160px; /* Definimos ancho fijo para centrar elementos */
-            height: 200px; /* Altura suficiente para globo + robot */
+            width: 160px;
+            height: 200px;
             z-index: 9990;
             cursor: pointer;
             
-            /* Animación de todo el conjunto flotando */
+            /* Animación de flotar */
             animation: flotar 3s ease-in-out infinite;
-            transition: bottom 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55), right 0.5s ease;
+            transition: all 0.5s ease;
         }
 
-        /* CLASE PARA CUANDO SE ABRE EL CHAT (Se va para arriba) */
-        .robot-arriba {
-            bottom: 630px !important; 
-            right: 20px !important;
-        }
-
-        /* --- 1. EL GLOBO (CAPA SUPERIOR - Z-INDEX ALTO) --- */
+        /* --- 1. EL GLOBO --- */
         .burbuja-saludo {
-            position: absolute; /* Posición absoluta dentro del contenedor */
-            top: 0; /* Lo pegamos arriba */
-            right: 10px; /* Alineado un poco a la derecha */
-            z-index: 10001; /* ENCIMA DEL ROBOT */
+            position: absolute;
+            top: -20px; 
+            right: 0; 
+            left: auto;
+            transform: none;
             
+            z-index: 10001;
             background: #ffffff;
             color: #005C9F;
             padding: 10px 15px;
-            border-radius: 18px;
-            border-bottom-right-radius: 0; /* Esquina recta para simular conexión */
-            
-            font-weight: bold;
-            font-size: 14px;
-            line-height: 1.3;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border-radius: 15px;
             border: 2px solid #FFB81C;
             
-            width: 180px; /* Ancho del globo */
+            width: 160px; 
+            box-sizing: border-box; 
             text-align: center;
-            
-            /* Animación de entrada */
+            font-size: 13px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
             animation: aparecer 0.5s ease-out forwards;
         }
 
-        /* La "colita" del globo apuntando hacia la mano/cabeza del robot */
+        /* La Cuerda del globo */
         .burbuja-saludo::after {
             content: '';
             position: absolute;
-            bottom: -8px; /* Que salga por debajo */
-            right: 0; /* Pegado a la esquina derecha donde está el robot */
-            width: 0;
-            height: 0;
-            border-left: 10px solid transparent;
-            border-top: 10px solid #FFB81C; /* Color del borde */
+            bottom: -40px;
+            right: 40px; 
+            
+            width: 2px;
+            height: 40px;
+            background-color: #33333300; /* Color de la cuerda visible */
+            border: none; 
         }
 
-        /* --- 2. EL ROBOT (CAPA INFERIOR - Z-INDEX MEDIO) --- */
+        /* --- 2. EL ROBOT --- */
         dotlottie-wc {
             position: absolute;
-            bottom: 0; /* Pegado al fondo del contenedor */
-            right: 0;  /* Pegado a la derecha */
-            z-index: 9995; /* DEBAJO DEL GLOBO */
+            bottom: 0; 
+            right: 0; 
+            z-index: 9995;
             
             width: 150px !important; 
             height: 150px !important;
@@ -112,9 +104,43 @@
         }
 
         .robot-container:hover dotlottie-wc {
-            transform: scale(1.05); /* Efecto leve al pasar mouse */
+            transform: scale(1.05);
         }
 
+        /* --- BOTÓN "X" PERSONALIZADO --- */
+        /* --- BOTÓN "X" PERSONALIZADO (Corregido) --- */
+        .boton-cerrar-custom {
+            position: fixed;
+            /* CAMBIO: Lo fijamos arriba a la derecha para que siempre se vea */
+            top: 20px; 
+            right: 25px;
+            
+            width: 40px; /* Un poco más grande para facilitar el clic */
+            height: 40px;
+            
+            background-color: #ff4444; 
+            color: white;
+            border: 2px solid white;
+            border-radius: 50%;
+            
+            font-family: Arial, sans-serif;
+            font-size: 20px;
+            font-weight: bold;
+            
+            cursor: pointer;
+            z-index: 2147483647; /* El número más alto posible para que nada lo tape */
+            display: none; /* Oculto al inicio */
+            
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .boton-cerrar-custom:hover {
+            transform: scale(1.1);
+            background-color: #cc0000;
+        }
         /* --- ANIMACIONES --- */
         @keyframes flotar {
             0% { transform: translateY(0px); }
@@ -126,8 +152,62 @@
             from { opacity: 0; transform: scale(0.8); }
             to { opacity: 1; transform: scale(1); }
         }
+        /* =========================================
+           📱 ESTILOS PARA CELULAR (Responsive)
+           ========================================= */
+        @media (max-width: 768px) {
+            
+            /* Ajustamos el contenedor principal */
+            .container {
+                padding: 20px;
+                width: 85%;
+            }
+            
+            h1 { font-size: 1.5rem; }
+            
+            /* Robot un poco más pequeño */
+            
+            .robot-container { 
+                width: 130px; 
+                height: 170px; 
+                bottom: -50px;   /* Pegado abajo */
+                right: 0px;    /* Pegado a la derecha */
+            }
+            
+            dotlottie-wc {
+                width: 120px !important;
+                height: 120px !important;
+            }
 
-        /* --- DIALOGFLOW (OCULTO) --- */
+            /* Ajuste del globo */
+            .burbuja-saludo {
+                width: 140px;
+                font-size: 12px;
+                padding: 8px;
+                top: -15px;
+            }
+            
+            
+            .burbuja-saludo::after {
+                right: 30px; /* Ajuste para que coincida con la mano en tamaño móvil */
+            }
+
+            /* Ajuste de la X para que no estorbe */
+            .boton-cerrar-custom {
+                width: 40px;
+                height: 40px;
+                top: 15px;
+                right: 15px;
+                font-size: 20px;
+            }
+
+            /* El chat en móvil suele ocupar el 100%, aseguramos la X visible */
+            df-messenger {
+                --df-messenger-chat-window-height: 100%; /* Altura completa */
+                --df-messenger-chat-window-width: 100%;
+            }
+        }
+        /* --- ESTILOS DIALOGFLOW --- */
         df-messenger {
             --df-messenger-button-titlebar-color: #005C9F;
             --df-messenger-button-titlebar-font-color: #ffffff;
@@ -136,21 +216,21 @@
             --df-messenger-user-message: #004a7f;
             --df-messenger-send-icon: #005C9F;
             --df-messenger-chat-background-color: #ffffff;
+            /* Forzamos una altura para que la X coincida siempre */
+            --df-messenger-chat-window-height: 600px; 
             z-index: 20000; 
+            
+            /* Oculto al inicio */
+            opacity: 0;
+            visibility: hidden;
+            z-index: -100;
         }
 
-        df-messenger::part(header) { display: flex; align-items: center; }
-        df-messenger::part(title)::before {
-            content: ""; display: inline-block;
-            background-image: url('logo_gore.png'); 
-            background-size: cover; width: 30px; height: 30px;
-            margin-right: 10px; vertical-align: middle;
-            background-color: white; border-radius: 50%; border: 2px solid white;
-        }
-        df-messenger::part(content) {
-            background-image: url('logo_gore.png');
-            background-repeat: no-repeat; background-position: center;
-            background-size: 50%; background-blend-mode: overlay;
+        /* Clase visible */
+        df-messenger.activo {
+            opacity: 1;
+            visibility: visible;
+            z-index: 20000;
         }
     </style>
 </head>
@@ -164,12 +244,15 @@
         <p>Prueba de integración con Base de Datos.</p>
     </div>
 
+    <button id="btn-cerrar-x" class="boton-cerrar-custom" onclick="cerrarChatCustom()">
+        ✕
+    </button>
+    
     <div id="robot-wrapper" class="robot-container" onclick="abrirChat()">
-        
         <div class="burbuja-saludo" id="globo-texto">
             👋 <strong>¡Hola!</strong><br>
             Soy el Bot del GORE Pasco.<br>
-            <span style="font-size: 0.9em; text-decoration: underline;">Haz clic aquí</span>
+            <span style="font-size: 0.9em; text-decoration: underline;">Haz clic para chatear</span>
         </div>
         
         <dotlottie-wc
@@ -189,35 +272,85 @@
     ></df-messenger>
 
     <script>
+        // Referencias a los elementos
+        const dfMessenger = document.querySelector('df-messenger');
+        const robot = document.getElementById('robot-wrapper');
+        const globo = document.getElementById('globo-texto');
+        const btnCerrar = document.getElementById('btn-cerrar-x');
+
+        // 1. FUNCIÓN PARA ABRIR EL CHAT
         function abrirChat() {
-            const dfMessenger = document.querySelector('df-messenger');
-            const robot = document.getElementById('robot-wrapper');
-            const globo = document.getElementById('globo-texto');
-
-            // Abrir chat
-            dfMessenger.shadowRoot.querySelector('button#widgetIcon').click();
+            // A) CAMBIO VISUAL INMEDIATO
+            robot.style.display = 'none';       // Robot se va
+            btnCerrar.style.display = 'flex';   // Botón X aparece
             
-            // Subir robot
-            robot.classList.add('robot-arriba');
-
-            // Ocultar globo
-            if(globo) globo.style.display = 'none';
+            // B) ACTIVAR CONTENEDOR
+            dfMessenger.classList.add('activo');
+            
+            // C) CLICK INTERNO PARA ABRIR
+            const btn = dfMessenger.shadowRoot.querySelector('button#widgetIcon');
+            if(btn) {
+                btn.click();
+            } else {
+                setTimeout(() => {
+                     const btnRetry = dfMessenger.shadowRoot.querySelector('button#widgetIcon');
+                     if(btnRetry) btnRetry.click();
+                }, 200);
+            }
         }
 
-        window.addEventListener('load', function () {
-            // Limpieza
-            const chatStorageKeys = Object.keys(localStorage).filter(key => key.startsWith('df-messenger-'));
-            chatStorageKeys.forEach(key => localStorage.removeItem(key));
+        // 2. FUNCIÓN PARA CERRAR EL CHAT (Botón X)
+        function cerrarChatCustom() {
+            // A) Forzamos la desaparición del botón X inmediatamente (para mejor sensación)
+            btnCerrar.style.display = 'none';
+
+            // B) Click interno para cerrar el chat real
+            const btn = dfMessenger.shadowRoot.querySelector('button#widgetIcon');
+            if(btn) btn.click();
+
+            // C) (Backup) Si por alguna razón el evento no se dispara, 
+            // forzamos que el robot vuelva en 500ms
+            setTimeout(() => {
+                robot.style.display = 'block';
+                dfMessenger.classList.remove('activo');
+            }, 500);
+        }
+
+        // 3. ESCUCHA DE EVENTOS (Para mantener sincronía)
+        window.addEventListener('df-chat-open-changed', (event) => {
+            const isOpen = event.detail.isOpen;
             
-            // Ocultar Botón Azul insistentemente
+            if (isOpen) {
+                // --- ABIERTO ---
+                robot.style.display = 'none';
+                btnCerrar.style.display = 'flex';
+                dfMessenger.classList.add('activo');
+            } else {
+                // --- CERRADO ---
+                btnCerrar.style.display = 'none'; // Aseguramos que la X se vaya
+                
+                // Esperamos la animación y mostramos robot
+                setTimeout(() => {
+                    robot.style.display = 'block'; // ¡Vuelve robot sin condiciones!
+                    dfMessenger.classList.remove('activo');
+                }, 500);
+            }
+        });
+
+        // 4. LIMPIEZA INICIAL
+        window.addEventListener('load', function () {
+            // Aseguramos estado inicial correcto
+            if(btnCerrar) btnCerrar.style.display = 'none';
+            if(robot) robot.style.display = 'block';
+
+            // Ocultar botón azul nativo
             const ocultarBoton = setInterval(() => {
-                const dfMessenger = document.querySelector('df-messenger');
                 if (dfMessenger && dfMessenger.shadowRoot) {
                     const btn = dfMessenger.shadowRoot.querySelector('button#widgetIcon');
                     if (btn) {
-                        btn.style.opacity = '0';
+                        btn.style.opacity = '0'; 
                         btn.style.pointerEvents = 'none';
-                        btn.style.width = '0px';
+                        btn.style.width = '0px'; 
                         btn.style.height = '0px';
                     }
                 }
